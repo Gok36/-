@@ -1,0 +1,180 @@
+import os
+import sys
+import aiohttp
+import asyncio
+import datetime
+import time
+from colorama import init, Fore, Style
+from pystyle import Colors, Colorate
+import platform
+import ssl
+import certifi
+
+init()
+
+banners = """
+██╗░░██╗██╗░░░██╗██████╗░██╗░░██╗░█████╗░███╗░░██╗██████╗░███████╗██╗░░░██╗
+██║░██╔╝╚██╗░██╔╝██╔══██╗██║░░██║██╔══██╗████╗░██║██╔══██╗██╔════╝██║░░░██║
+█████═╝░░╚████╔╝░██████╔╝███████║███████║██╔██╗██║██║░░██║█████╗░░╚██╗░██╔╝
+██╔═██╗░░░╚██╔╝░░██╔═══╝░██╔══██║██╔══██║██║╚████║██║░░██║██╔══╝░░░╚████╔╝░
+██║░╚██╗░░░██║░░░██║░░░░░██║░░██║██║░░██║██║░╚███║██████╔╝███████╗░░╚██╔╝░░
+╚═╝░░╚═╝░░░╚═╝░░░╚═╝░░░░░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝╚═════╝░╚══════╝░░░╚═╝░░░
+"""
+thongtin = """
+                  ╔═════════════════════════════════════════╗
+                  ║            Thông Tin Admin              ║
+                  ╠═════════════════════════════════════════╣
+                  ║FB: https://facebook.com/kyphandev       ║
+                  ║Box Zalo: https://zalo.me/g/ymiehv395    ║
+                  ║Version: beta                            ║
+                  ║Admin: Phan Trương Kỳ                    ║
+                  ╚═════════════════════════════════════════╝
+"""
+
+def clear():
+    if platform.system().lower()[0:3] == 'lin':
+        os.system('clear')
+    else:
+        os.system('cls')
+
+def banner():
+    print('\033[0m', end='')
+    clear()
+    print(Colorate.Horizontal(Colors.blue_to_green, banners))
+    print(Colorate.Horizontal(Colors.blue_to_green, thongtin))
+    print()
+
+success = []
+list_token = []
+
+async def get_token_from_cookie(session, cookie):
+    headers = {
+        'authority': 'business.facebook.com',
+        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+        'accept-language': 'vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5',
+        'cache-control': 'max-age=0',
+        'cookie': cookie,
+        'referer': 'https://www.facebook.com/',
+        'sec-ch-ua': '"Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Linux"',
+        'sec-fetch-dest': 'document',
+        'sec-fetch-mode': 'navigate',
+        'sec-fetch-site': 'same-origin',
+        'sec-fetch-user': '?1',
+        'upgrade-insecure-requests': '1',
+    }
+    try:
+        async with session.get('https://business.facebook.com/content_management', headers=headers) as response:
+            home_business = await response.text()
+            token = home_business.split('EAAG')[1].split('","')[0]
+            return f'EAAG{token}'
+    except Exception as e:
+        print(Fore.RED + f"Error extracting token from cookie: {e}" + Style.RESET_ALL)
+        return None
+
+async def get_page_tokens(session, token, cookie):
+    headers = {
+        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'accept-language': 'vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5',
+        'cache-control': 'max-age=0',
+        'cookie': cookie,
+        'priority': 'u=0, i',
+        'sec-ch-ua': '"Google Chrome";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+        'sec-fetch-dest': 'document',
+        'sec-fetch-mode': 'navigate',
+        'sec-fetch-site': 'none',
+        'sec-fetch-user': '?1',
+        'upgrade-insecure-requests': '1',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
+    }
+    params = {'access_token': token}
+    async with session.get('https://graph.facebook.com/me/accounts', params=params, headers=headers) as r:
+        rq = await r.json()
+        if 'data' in rq:
+            return [t["access_token"] for t in rq["data"]]
+        else:
+            print(Fore.RED + "Token or Cookie invalid! Unable to fetch page tokens." + Style.RESET_ALL)
+            return []
+
+async def getid(session, link):
+    async with session.post('https://id.traodoisub.com/api.php', data={"link": link}) as response:
+        rq = await response.json()
+        if 'success' in rq:
+            return rq["id"]
+        else:
+            print(Fore.RED + "Link post sai!!! Vui lòng nhập lại" + Style.RESET_ALL)
+            exit()
+
+async def shareao(session, tk, ck, post):
+    while True:
+        now = datetime.datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+        headers = {
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+            'accept-language': 'vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5',
+            'cache-control': 'max-age=0',
+            'cookie': ck,
+            'priority': 'u=0, i',
+            'sec-ch-ua': '"Google Chrome";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"',
+            'sec-fetch-dest': 'document',
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-site': 'none',
+            'sec-fetch-user': '?1',
+            'upgrade-insecure-requests': '1',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
+        }
+        async with session.get(f'https://graph.facebook.com/me/feed?method=POST&link=https://m.facebook.com/{post}&published=0&access_token={tk}', headers=headers) as response:
+            json = await response.json()
+            if 'id' in json:
+                print(Colorate.Horizontal(Colors.blue_to_green, f"{len(success)} {current_time} | {json['id']} | Success"))
+                success.append(json['id'])
+            else:
+                print(Fore.RED + f"{len(success)} {current_time} : Failure" + Style.RESET_ALL)
+                break
+
+async def main():
+    banner()
+    print(Colorate.Horizontal(Colors.blue_to_green, "Link Post: "), end='')
+    link = input().strip()
+    print(Colorate.Horizontal(Colors.blue_to_green, "Cookie: "), end='')
+    cookie = input().strip()
+    
+    if not link:
+        print(Fore.RED + "Chưa nhập link post!" + Style.RESET_ALL)
+        exit()
+    if not cookie:
+        print(Fore.RED + "Chưa nhập cookie!" + Style.RESET_ALL)
+        exit()
+    
+    ssl_context = ssl.create_default_context(cafile=certifi.where())
+    connector = aiohttp.TCPConnector(ssl=ssl_context)
+    
+    async with aiohttp.ClientSession(connector=connector) as session:
+        post = await getid(session, link)
+        
+        user_token = await get_token_from_cookie(session, cookie)
+        if not user_token:
+            print(Fore.RED + "Không thể lấy token từ cookie!" + Style.RESET_ALL)
+            exit()
+        
+        page_tokens = await get_page_tokens(session, user_token, cookie)
+        if not page_tokens:
+            print(Fore.RED + "Không tìm thấy page nào hoặc token không hợp lệ!" + Style.RESET_ALL)
+            exit()
+        
+        list_token.extend(page_tokens)
+        total_tokens = len(page_tokens)
+        print(Colorate.Horizontal(Colors.blue_to_green, f"Số token của page: {total_tokens}"))
+        
+        banner()
+        print(Colorate.Horizontal(Colors.blue_to_green, f"Tổng Số Token: {total_tokens}"))
+        await asyncio.gather(*[shareao(session, tk, cookie, post) for tk in list_token])
+        print(Colorate.Horizontal(Colors.blue_to_green, f"Success Share: {len(success)}"))
+
+if __name__ == "__main__":
+    asyncio.run(main())
