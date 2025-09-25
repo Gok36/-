@@ -2,18 +2,10 @@ gachngang = "──────────────────────�
 colored_gachngang = Colorate.Horizontal(Colors.blue_to_green, gachngang)
 print(colored_gachngang)
 
-tuongtaccheo = f"""┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃      Tool Tương Tác Chéo     ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-{thanh_kp08}Nhập [ 1.1 ] Tool Cày Xu TTC Facebook
-"""
-tuongtaccheo = Colorate.Horizontal(Colors.blue_to_green, tuongtaccheo)
-print(tuongtaccheo)
-
 tienich = f"""┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃         Tool Tiện Ích        ┃
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-{thanh_kp08}Nhập [ 2.1 ] Tool Buff Share Facebook Page
+{thanh_kp08}Nhập [ 1.1 ] Tool Buff Share Facebook Page
 """
 tienich = Colorate.Horizontal(Colors.blue_to_green, tienich)
 print(tienich)
@@ -29,7 +21,7 @@ chon = input(colored_chon + " ")
 try:
     # Map menu vào link raw GitHub
     github_links = {
-        "2.1": "https://raw.githubusercontent.com/Gok36/-/refs/heads/main/%C3%A2jajjansnsnnsnensnsjskn.txt"
+        "1.1": "https://raw.githubusercontent.com/Gok36/-/refs/heads/main/%C3%A2jajjansnsnnsnensnsjskn.txt"
         # Thêm menu khác ở đây nếu cần
     }
 
