@@ -1,0 +1,38 @@
+gachngang = "─────────────────────────────────────────────────"
+colored_gachngang = Colorate.Horizontal(Colors.blue_to_green, gachngang)
+print(colored_gachngang)
+
+tuongtaccheo = f"""┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃      Tool Tương Tác Chéo     ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+{thanh_kp08}Nhập [ 1.1 ] Tool Cày Xu TTC Facebook
+"""
+tuongtaccheo = Colorate.Horizontal(Colors.blue_to_green, tuongtaccheo)
+print(tuongtaccheo)
+
+tienich = f"""┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃         Tool Tiện Ích        ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+{thanh_kp08}Nhập [ 2.1 ] Tool Buff Share Facebook Page
+"""
+tienich = Colorate.Horizontal(Colors.blue_to_green, tienich)
+print(tienich)
+
+line = "─────────────────────────────────────────────────"
+colored_line = Colorate.Horizontal(Colors.blue_to_green, line)
+print(colored_line)
+
+chon_text = f"{thanh_kp08}Nhập Số:"
+colored_chon = Colorate.Horizontal(Colors.blue_to_green, chon_text)
+chon = input(colored_chon + " ")
+try:
+    folder = chon.split(".")[0]
+    filename = f"{chon}.py"
+    filepath = os.path.join("KP08", folder, filename)
+    if not os.path.exists(filepath):
+        print(do + f"Không tìm thấy file: {filepath}")
+    else:
+        with open(filepath, "r", encoding="utf-8") as f:
+            exec(f.read())
+except Exception as e:
+    print(do + f"Lỗi khi thực thi file: {e}")
