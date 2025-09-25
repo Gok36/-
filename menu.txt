@@ -22,7 +22,7 @@ try:
     # Map menu vào link raw GitHub
     github_links = {
         "1.1": "https://raw.githubusercontent.com/Gok36/-/refs/heads/main/%C3%A2jajjansnsnnsnensnsjskn.txt"
-        # Thêm menu khác ở đây nếu cần
+        # Thêm menu khác ở đây
     }
 
     if chon in github_links:
