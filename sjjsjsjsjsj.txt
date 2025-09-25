@@ -1,0 +1,190 @@
+import requests, json, os, sys, random, string
+from datetime import datetime
+from pystyle import Colors, Colorate
+
+# ========== HỆ THỐNG KEY ==========
+
+def random_key(length=12):
+    allowed_chars = string.ascii_letters + "adckpmjihgyfdrscghnjk"
+    return ''.join(random.choices(allowed_chars, k=length))
+
+def create_key():
+    key = random_key()
+    url = f"https://kyphandev.site/getkey?key={key}&keyvip=admin&time=24"
+    try:
+        r = requests.get(url, timeout=10)
+        if r.status_code == 200:
+            return key
+    except:
+        pass
+    return None
+
+def kiem_tra_key(key):
+    url = f"https://kyphandev.site/checkkey?key={key}"
+    try:
+        r = requests.get(url, timeout=10)
+        if r.status_code == 200:
+            data = r.json()
+            if data.get("status") == "ok":
+                return True, {
+                    "key": key,
+                    "expires_at": data.get("expiresAt"),
+                    "remaining_seconds": data.get("remainingSeconds", 0),
+                    "remaining_hours": data.get("remainingHours", "0")
+                }
+    except:
+        pass
+    return False, None
+
+def hien_key(key):
+    url = f"https://kyphandev.site/hienkey?key={key}"
+    try:
+        r = requests.get(url, timeout=10)
+        if r.status_code == 200:
+            return url
+    except:
+        pass
+    return None
+
+def get_link4m(link):
+    api_url = f"https://link4m.co/api-shorten/v2?api=68caff615d36ca4cab6e057a&url={link}"
+    try:
+        r = requests.get(api_url, timeout=10)
+        if r.status_code == 200:
+            data = r.json()
+            if data.get("status") == "success":
+                return data["shortenedUrl"]
+    except:
+        pass
+    return None
+
+def get_ip_address():
+    try:
+        response = requests.get("https://api.ipify.org", timeout=5)
+        return response.text.strip()
+    except:
+        return "127.0.0.1"
+
+def doc_file_json(file_path):
+    if not os.path.exists(file_path):
+        return {}
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read().strip()
+            if not content:
+                return {}
+            data = json.loads(content)
+            if not isinstance(data, dict):
+                return {}
+            return data
+    except:
+        return {}
+
+def ghi_file_json(file_path, data):
+    try:
+        os.makedirs(os.path.dirname(file_path) if os.path.dirname(file_path) else '.', exist_ok=True)
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+        return True
+    except:
+        return False
+
+def kiem_tra_ip(ip):
+    try:
+        data = doc_file_json("ip_key.json")
+        if ip in data:
+            key_info = data[ip]
+            expires_at = key_info.get("expires_at")
+            if expires_at:
+                try:
+                    expire_date = datetime.strptime(expires_at, "%d/%m/%Y %H:%M:%S")
+                    if expire_date > datetime.now():
+                        return True
+                    else:
+                        del data[ip]; ghi_file_json("ip_key.json", data)
+                except:
+                    del data[ip]; ghi_file_json("ip_key.json", data)
+        return False
+    except:
+        return False
+
+def luu_ip_key(ip, key_info):
+    try:
+        data = doc_file_json("ip_key.json")
+        data[ip] = {
+            "key": key_info["key"],
+            "expires_at": key_info["expires_at"],
+            "remaining_seconds": key_info["remaining_seconds"],
+            "remaining_hours": key_info["remaining_hours"],
+            "created_at": datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        }
+        return ghi_file_json("ip_key.json", data)
+    except:
+        return False
+
+def hien_thi_thong_tin_key(ip):
+    try:
+        data = doc_file_json("ip_key.json")
+        if ip in data:
+            key_info = data[ip]
+            thongtin_key = f"""
+                  ╔═════════════════════════════════════════╗
+                  ║              Thông Tin Key              ║
+                  ╠═════════════════════════════════════════╣
+                    Key: {key_info['key']}                   
+                    Tạo lúc: {key_info.get('created_at', 'N/A')}     
+                    Hết hạn: {key_info['expires_at']}      
+                    Còn lại: {key_info['remaining_hours']} giờ     
+                  ╚═════════════════════════════════════════╝
+"""
+            c = Colorate.Horizontal(Colors.blue_to_green, thongtin_key)
+            for i in range(len(c)):
+                sys.stdout.write(c[i]); sys.stdout.flush()
+            print()
+            return True
+        return False
+    except:
+        return False
+
+def tao_key_voi_ip():
+    print(Colorate.Horizontal(Colors.blue_to_green, "\n🔑 Đang tạo key mới cho IP..."))
+    print(Colorate.Horizontal(Colors.blue_to_green, "─" * 50))
+    ip = get_ip_address()
+    print(Colorate.Horizontal(Colors.blue_to_green, f"🔎 IP của bạn: {ip}"))
+    if kiem_tra_ip(ip):
+        print(Colorate.Horizontal(Colors.blue_to_green, "✅ IP này đã có key hợp lệ!"))
+        hien_thi_thong_tin_key(ip)
+        return True
+    print(Colorate.Horizontal(Colors.blue_to_green, "\n⏳ Đang tạo key mới..."))
+    key = create_key()
+    if not key:
+        print(Colorate.Horizontal(Colors.blue_to_green, "❌ Không thể tạo key!"))
+        return False
+    link_hienkey = hien_key(key)
+    if link_hienkey:
+        short_link = get_link4m(link_hienkey)
+        if short_link:
+            print(Colorate.Horizontal(Colors.blue_to_green, f"\n✅ Vui lòng mở link sau để lấy key:\n{short_link}"))
+        else:
+            print(Colorate.Horizontal(Colors.blue_to_green, "❌ Không thể rút gọn link, vui lòng thử lại sau!"))
+            return False
+    else:
+        print(Colorate.Horizontal(Colors.blue_to_green, "❌ Không thể tạo link hiện key"))
+        return False
+    key_nhap = input(Colorate.Horizontal(Colors.blue_to_green, "\n➤ Nhập key bạn vừa lấy được: ")).strip()
+    if not key_nhap:
+        print(Colorate.Horizontal(Colors.blue_to_green, "❌ Key không được để trống!"))
+        return False
+    print(Colorate.Horizontal(Colors.blue_to_green, "\n🔍 Đang kiểm tra key..."))
+    is_valid, key_info = kiem_tra_key(key_nhap)
+    if is_valid and key_info:
+        if luu_ip_key(ip, key_info):
+            print(Colorate.Horizontal(Colors.blue_to_green, "\n✅ Đã lưu key thành công!"))
+            hien_thi_thong_tin_key(ip)
+            return True
+        else:
+            print(Colorate.Horizontal(Colors.blue_to_green, "\n❌ Lỗi khi lưu key!"))
+            return False
+    else:
+        print(Colorate.Horizontal(Colors.blue_to_green, "\n❌ Key không hợp lệ!"))
+        return False
